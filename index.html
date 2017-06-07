@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="./js/jquery-3.2.1.min.js"></script>
+  <script src="./js/echarts.common.min.js"></script>
+  <title>charts demo</title>
+</head>
+
+<style>
+  .pie,
+  .line {
+    width: 600px;
+    height: 400px;
+    display: none;
+    margin: auto;
+  }
+
+  .line {
+    display: block;
+  }
+</style>
+
+<body>
+  <div id="bar" style="width: 600px;height:400px; margin: auto;"></div>
+  <div id="pie" class="pie"></div>
+  <div id="line" class="line"></div>
+  <script type="text/javascript">
+    console.log(echarts)
+    // 基于准备好的dom，初始化echarts实例
+    var barChart = echarts.init(document.getElementById('bar'));
+
+    // 指定图表的配置项和数据
+    // var option = {
+    //   title: {
+    //     text: 'ECharts 入门示例'
+    //   },
+    //   tooltip: {},
+    //   // 图例
+    //   legend: {
+    //     data: ['销量']
+    //   },
+    //   xAxis: {
+    //     data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
+    //   },
+    //   yAxis: {},
+    //   // 数据
+    //   series: [{
+    //     name: '销量',
+    //     type: 'bar', // 图形类型
+    //     data: [5, 20, 36, 10, 10, 20]
+    //   }]
+    // };
+
+    var dataAxis = ['点', '击', '柱', '子', '或', '者', '两', '指', '在', '触', '屏', '上', '滑', '动', '能', '够', '自', '动', '缩', '放'];
+    var
+      data = [220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210, 122, 133, 334, 198, 123, 125, 220];
+    var yMax = 500;
+    var dataShadow = [];
+    for (var i = 0; i < data.length; i++) {
+      dataShadow.push(yMax);
+    }
+    option = {
+      title: {
+        text: '特性示例：渐变色 阴影 点击缩放',
+        subtext: 'Feature Sample: Gradient Color, Shadow, Click Zoom'
+      },
+      tooltip: {
+        trigger: 'item',
+      },
+      xAxis: {
+        data: dataAxis,
+        axisLabel: {
+          // inside: true,
+          textStyle: {
+            color: '#333'
+          }
+        },
+        axisTick: {
+          show: false
+        },
+        axisLine: {
+          show: false
+        },
+        z: 10
+      },
+      yAxis: {
+        axisLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+        axisLabel: {
+          textStyle: {
+            color: '#999'
+          }
+        }
+      },
+      dataZoom: [{
+        type: 'inside'
+      }],
+      series: [{ // For shadow
+        type: 'bar',
+        itemStyle: {
+          normal: {
+            color: 'rgba(0,0,0,0.05)'
+          }
+        },
+        barGap: '-100%',
+        barCategoryGap: '40%',
+        data: dataShadow,
+        animation: false
+      }, {
+        type: 'bar',
+        itemStyle: {
+          normal: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+              offset: 0,
+              color: '#83bff6'
+            }, {
+              offset: 0.5,
+              color: '#188df0'
+            }, {
+              offset: 1,
+              color: '#188df0'
+            }])
+          },
+          emphasis: {
+            color: new echarts.graphic.LinearGradient(
+              0, 0, 0, 1, [{
+                offset: 0,
+                color: '#2378f7'
+              }, {
+                offset: 0.7,
+                color: '#2378f7'
+              }, {
+                offset: 1,
+                color: '#83bff6'
+              }])
+          }
+        },
+        data: data
+      }]
+    }; // Enable data zoom when user click bar. 
+    var zoomSize = 6;
+    barChart.on('click', function (params) {
+      // console.log(params, 'params')
+      // console.log(dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)]);
+      // barChart.dispatchAction({
+      //   type: 'dataZoom',
+      //   startValue: dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)],
+      //   endValue: dataAxis[Math.min(params.dataIndex + zoomSize / 2, data.length - 1)]
+      // });
+      document.getElementById('pie').style.display = 'block'
+      pieChart.showLoading() 
+      $.ajax({
+        type: 'get',
+        async: true,
+        url: 'http://userpay.icitic.net/user/orderListQuery',
+        dataType: 'json',
+        success: function (res) {
+          pieChart.hideLoading()
+          console.log(params, 'lineChart params') 
+          pieChart.setOption(pieOptions)
+          document.getElementById('pie').style.display = 'block'
+        }
+      })
+      // pieChart.showLoading() // 显示加载动画
+      // pieChart.hideLoading() // 隐藏加载动画
+    });
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    barChart.setOption(option);
+    var pieChart = echarts.init(document.getElementById('pie'))
+    var pieOptions = {
+      backgroundColor: '#000',
+      title: {
+        text: 'Customized Pie',
+        left: 'center',
+        top: 20,
+        textStyle: {
+          color: '#ccc'
+        }
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+      },
+      visualMap: {
+        show: false,
+        min: 80,
+        max: 600,
+        inRange: {
+          colorLightness: [0, 1]
+        }
+      },
+      series: [{
+        name: '访问来源',
+        type: 'pie',
+        radius: '55%',
+        center: ['50%', '50%'],
+        data: [{
+          value: 335,
+          name: '直接访问'
+        }, {
+          value: 310,
+          name: '邮件营销'
+        }, {
+          value: 274,
+          name: '联盟广告'
+        }, {
+          value: 235,
+          name: '视频广告'
+        }, {
+          value: 400,
+          name: '搜索引擎'
+        }].sort(function (a, b) {
+          return a.value - b.value;
+        }),
+        roseType: 'radius',
+        label: {
+          normal: {
+            textStyle: {
+              color: 'rgba(255, 255, 255, 0.3)'
+            }
+          }
+        },
+        labelLine: {
+          normal: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.3)'
+            },
+            smooth: 0.2,
+            length: 10,
+            length2: 20
+          }
+        },
+        itemStyle: {
+          normal: {
+            color: '#c23531',
+            shadowBlur: 200,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        animationType: 'scale',
+        animationEasing: 'elasticOut',
+        animationDelay: function (idx) {
+          return Math.random() * 200;
+        }
+      }]
+    };
+    // 多表联动
+    // barChart.group = 'group1'
+    // pieChart.group = 'group1'
+    // echarts.connect('group1')
+
+    var lineOption = {
+      title: {
+        text: '未来一周气温变化',
+        subtext: '纯属虚构'
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: ['最高气温', '最低气温']
+      },
+      toolbox: {
+        show: true,
+        feature: {
+          dataZoom: {
+            yAxisIndex: 'none'
+          },
+          dataView: {
+            readOnly: false
+          },
+          magicType: {
+            type: ['line', 'bar']
+          },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: '{value} °C'
+        }
+      },
+      series: [{
+        name: '最高气温',
+        type: 'line',
+        data: [11, 11,
+          15, 13, 12, 13, 10
+        ],
+        markPoint: {
+          data: [{
+            type: 'max',
+            name: '最大值'
+          }, {
+            type: 'min',
+            name: '最小值'
+          }]
+        },
+        markLine: {
+          data: [{
+            type: 'average',
+            name: '平均值'
+          }]
+        }
+      }, {
+        name: '最低气温',
+        type: 'line',
+        data: [1, -2, 2, 5, 3, 2, 0],
+        markPoint: {
+          data: [{
+            name: '周最低',
+            value: -2,
+            xAxis: 1,
+            yAxis: -1.5
+          }]
+        },
+        markLine: {
+          data: [{
+              type: 'average',
+              name: '平均值'
+            },
+            [{
+              symbol: 'none',
+              x: '90%',
+              yAxis: 'max'
+            }, {
+              symbol: 'circle',
+              label: {
+                normal: {
+                  position: 'start',
+                  formatter: '最大值'
+                }
+              },
+              type: 'max',
+              name: '最高点'
+            }]
+          ]
+        }
+      }]
+    }
+    var lineChart = echarts.init(document.getElementById('line'))
+    lineChart.setOption(lineOption)
+    lineChart.on('click', function (params) {
+      document.getElementById('pie').style.display = 'block'
+      pieChart.showLoading()
+      $.ajax({
+        type: 'get',
+        async: true,
+        url: 'http://userpay.icitic.net/user/orderListQuery',
+        dataType: 'json',
+        success: function (res) {
+          pieChart.hideLoading()
+          console.log(params, 'lineChart params')
+          pieChart.setOption(pieOptions)
+          document.getElementById('pie').style.display = 'block'
+        }
+      })
+      // $.getJSON('http://userpay.icitic.net/user/orderListQuery', function (data) {
+      //   pieChart.hideLoading() 
+      //   console.log(params, 'lineChart params') 
+      //   pieChart.setOption(pieOptions) 
+      // })
+    })
+  </script>
+</body>
+
+</html>
