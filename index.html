@@ -84,44 +84,44 @@
     var yMax = 500;
     var dataShadow = [];
     option = {
-      title: {
+      title: {                    // 生成charts的标题
         text: '近30天每天商户数',
       },
-      tooltip: {
-        trigger: 'axis',
+      tooltip: {                  // 鼠标悬停后的提示气泡
+        trigger: 'axis',          // [触发类型: axis/item](http://echarts.baidu.com/option.html#tooltip.trigger)
         axisPointer: {            // 坐标轴指示器，坐标轴触发有效
-          type: 'line'        // 默认为直线，可选为：'line' | 'shadow'
+          type: 'line'            // 默认为直线，可选为：'line' | 'shadow'
         },
-        formatter: '{b}<br /> 商户数(家): {c}'
+        formatter: '{b}<br /> 商户数(家): {c}'  // 悬停气泡显示格式(http://echarts.baidu.com/option.html#tooltip.formatter) 
       },
-      toolbox: {
-        show: true,
-        feature: {
+      toolbox: {                  // charts右上角工具栏
+        show: true,               // 是否显示工具栏
+        feature: {                // 工具栏配置
           dataZoom: {
             yAxisIndex: 'none'
           },
           dataView: {
             readOnly: false
           },
-          magicType: {
+          magicType: {            // 动态类型切换(折线/柱状图切换)
             type: ['line', 'bar']
           },
           restore: {},
           saveAsImage: {}
         }
       },
-      xAxis: {
+      xAxis: {                    // x轴坐标
         name: '时间',
-        data: getDate(),
-        axisLabel: {
-          textStyle: {
+        data: getDate(),          // x轴显示的数据
+        axisLabel: {              // x轴刻度相关设置
+          textStyle: {            // x轴刻度颜色
             color: '#333'
           }
         },
-        axisTick: {
+        axisTick: {               // 是否显示坐标轴刻度
           show: false
         },
-        axisLine: {
+        axisLine: {               // 是否显示坐标轴轴线。
           show: false
         },
         z: 10
@@ -135,18 +135,18 @@
           formatter: '{value}'
         }
       },
-      series: [{ // For shadow
-        type: 'bar',
-        name: '商户数(家)',
-        itemStyle: {
+      series: [{                // 设置charts类型及显示
+        type: 'bar',            // 柱状图
+        name: '商户数(家)',      // 系列名字，用于tooltip显示
+        itemStyle: {            // 图形样式 normal | emphasis
           normal: {
             color: 'rgba(0,0,0,0.05)'
           }
         },
-        barGap: '-100%',
-        barCategoryGap: '40%',
-        data: dataShadow,
-        animation: false
+        barGap: '-100%',        // 柱间距离
+        barCategoryGap: '40%',  // 类目间柱形距离(多种柱状图在一个图标上显示时)
+        data: dataShadow,       // 系列中的数据内容数组
+        animation: false        // 是否开启动画
       }, {
         type: 'bar',
         itemStyle: {
@@ -178,7 +178,7 @@
         },
         data: shopsCount
       }]
-    }; // Enable data zoom when user click bar. 
+    };
     
     var zoomSize = 6;
     // 使用刚指定的配置项和数据显示图表。
