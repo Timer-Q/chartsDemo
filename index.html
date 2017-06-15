@@ -11,70 +11,109 @@
 </head>
 
 <style>
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+  }
+  .bar,
   .pie,
   .line {
-    width: 600px;
+    width: 1000px;
     height: 400px;
-    display: none;
     margin: auto;
   }
 
-  .line {
-    display: block;
+  .pie {
+    display: inline-block;    
+  }
+
+  .modal-drop {
+    position: fixed;
+    display: none;
+    top: 0;
+    left: 0;
+    z-index: 99;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: .5;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, .9);
+    background: #fff \9;
+    text-align: center;
+    padding-top: 50px;
+  }
+  .close {
+    position: absolute;
+    right: 10%;
+    display: none;
+    cursor: pointer;
+    font-size: 30px;
   }
 </style>
 
 <body>
-  <div id="bar" style="width: 600px;height:400px; margin: auto;"></div>
-  <div id="pie" class="pie"></div>
+  <div id="bar" class="bar"></div>
   <div id="line" class="line"></div>
+  <div class="modal">
+    <div class="close" onclick="closeModal()"> &times; </div>
+    <div id="pie" class="pie"></div>
+  </div>
+  <div class="modal-drop"></div>
+  <script src="./testData/date.js"></script>
   <script type="text/javascript">
     console.log(echarts)
     // 基于准备好的dom，初始化echarts实例
     var barChart = echarts.init(document.getElementById('bar'));
 
-    // 指定图表的配置项和数据
-    // var option = {
-    //   title: {
-    //     text: 'ECharts 入门示例'
-    //   },
-    //   tooltip: {},
-    //   // 图例
-    //   legend: {
-    //     data: ['销量']
-    //   },
-    //   xAxis: {
-    //     data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
-    //   },
-    //   yAxis: {},
-    //   // 数据
-    //   series: [{
-    //     name: '销量',
-    //     type: 'bar', // 图形类型
-    //     data: [5, 20, 36, 10, 10, 20]
-    //   }]
-    // };
+    // 商户数最小值为 20 最大值为 45 （将元数据除以10 向下取整）
+    var shopsCount = getRandomData()
+    shopsCount = shopsCount.map(function(item) {
+        return Math.floor(item / 10)
+      })
 
-    var dataAxis = ['点', '击', '柱', '子', '或', '者', '两', '指', '在', '触', '屏', '上', '滑', '动', '能', '够', '自', '动', '缩', '放'];
-    var
-      data = [220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210, 122, 133, 334, 198, 123, 125, 220];
     var yMax = 500;
     var dataShadow = [];
-    for (var i = 0; i < data.length; i++) {
-      dataShadow.push(yMax);
-    }
     option = {
       title: {
-        text: '特性示例：渐变色 阴影 点击缩放',
-        subtext: 'Feature Sample: Gradient Color, Shadow, Click Zoom'
+        text: '近30天每天商户数',
       },
       tooltip: {
-        trigger: 'item',
+        trigger: 'axis',
+        axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+          type: 'line'        // 默认为直线，可选为：'line' | 'shadow'
+        },
+        formatter: '{b}<br /> 商户数(家): {c}'
+      },
+      toolbox: {
+        show: true,
+        feature: {
+          dataZoom: {
+            yAxisIndex: 'none'
+          },
+          dataView: {
+            readOnly: false
+          },
+          magicType: {
+            type: ['line', 'bar']
+          },
+          restore: {},
+          saveAsImage: {}
+        }
       },
       xAxis: {
-        data: dataAxis,
+        name: '时间',
+        data: getDate(),
         axisLabel: {
-          // inside: true,
           textStyle: {
             color: '#333'
           }
@@ -88,23 +127,17 @@
         z: 10
       },
       yAxis: {
-        axisLine: {
-          show: false
-        },
-        axisTick: {
-          show: false
-        },
+        name: '商户数(家)',
         axisLabel: {
           textStyle: {
             color: '#999'
-          }
+          },
+          formatter: '{value}'
         }
       },
-      dataZoom: [{
-        type: 'inside'
-      }],
       series: [{ // For shadow
         type: 'bar',
+        name: '商户数(家)',
         itemStyle: {
           normal: {
             color: 'rgba(0,0,0,0.05)'
@@ -143,132 +176,76 @@
               }])
           }
         },
-        data: data
+        data: shopsCount
       }]
     }; // Enable data zoom when user click bar. 
+    
     var zoomSize = 6;
+    // 使用刚指定的配置项和数据显示图表。
+    barChart.setOption(option);
+
+    // 初始化饼图
+    var pieChart = echarts.init(document.getElementById('pie'))
+    var pieOptions = {
+      title: {
+        text: '交易额前五商户',
+        x: 'center'
+      },
+      tooltip: {
+        trigger: 'item',
+        // formatter: "{a} <br/>{b} : {c}({d} % )"
+        formatter: "{b} : {c}({d} % )"
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+      },
+      series: [{
+        name: '访问来源',
+        type: 'pie',
+        radius: '55%',
+        center: ['50%', '60%'],
+        data: [],
+        itemStyle: {
+          emphasis: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }]
+      // color: []
+    };
+
+    // 柱状图点击事件
     barChart.on('click', function (params) {
-      // console.log(params, 'params')
-      // console.log(dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)]);
-      // barChart.dispatchAction({
-      //   type: 'dataZoom',
-      //   startValue: dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)],
-      //   endValue: dataAxis[Math.min(params.dataIndex + zoomSize / 2, data.length - 1)]
-      // });
-      document.getElementById('pie').style.display = 'block'
-      pieChart.showLoading() 
+
+      document.querySelector('.modal').style.display = 'block'
+      pieChart.showLoading()
+      var companies = ['中国工商银行', '中国建设银行', '中国农业银行', '中国银行', '交通银行', '招商银行', '兴业银行', '中国邮政储蓄', '中信银行', '中国民生银行']
       $.ajax({
         type: 'get',
         async: true,
         url: 'http://userpay.icitic.net/user/orderListQuery',
         dataType: 'json',
         success: function (res) {
-          pieChart.hideLoading()
-          console.log(params, 'lineChart params') 
-          pieChart.setOption(pieOptions)
-          document.getElementById('pie').style.display = 'block'
+          setPieData(params, pieOptions, pieChart, companies, params.name + '交易额前五商户')
         }
       })
-      // pieChart.showLoading() // 显示加载动画
-      // pieChart.hideLoading() // 隐藏加载动画
+
     });
-
-
-    // 使用刚指定的配置项和数据显示图表。
-    barChart.setOption(option);
-    var pieChart = echarts.init(document.getElementById('pie'))
-    var pieOptions = {
-      backgroundColor: '#000',
-      title: {
-        text: 'Customized Pie',
-        left: 'center',
-        top: 20,
-        textStyle: {
-          color: '#ccc'
-        }
-      },
-      tooltip: {
-        trigger: 'item',
-        formatter: "{a} <br/>{b} : {c} ({d}%)"
-      },
-      visualMap: {
-        show: false,
-        min: 80,
-        max: 600,
-        inRange: {
-          colorLightness: [0, 1]
-        }
-      },
-      series: [{
-        name: '访问来源',
-        type: 'pie',
-        radius: '55%',
-        center: ['50%', '50%'],
-        data: [{
-          value: 335,
-          name: '直接访问'
-        }, {
-          value: 310,
-          name: '邮件营销'
-        }, {
-          value: 274,
-          name: '联盟广告'
-        }, {
-          value: 235,
-          name: '视频广告'
-        }, {
-          value: 400,
-          name: '搜索引擎'
-        }].sort(function (a, b) {
-          return a.value - b.value;
-        }),
-        roseType: 'radius',
-        label: {
-          normal: {
-            textStyle: {
-              color: 'rgba(255, 255, 255, 0.3)'
-            }
-          }
-        },
-        labelLine: {
-          normal: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)'
-            },
-            smooth: 0.2,
-            length: 10,
-            length2: 20
-          }
-        },
-        itemStyle: {
-          normal: {
-            color: '#c23531',
-            shadowBlur: 200,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        },
-        animationType: 'scale',
-        animationEasing: 'elasticOut',
-        animationDelay: function (idx) {
-          return Math.random() * 200;
-        }
-      }]
-    };
     // 多表联动
     // barChart.group = 'group1'
     // pieChart.group = 'group1'
     // echarts.connect('group1')
 
+    // 折线图options
     var lineOption = {
       title: {
-        text: '未来一周气温变化',
-        subtext: '纯属虚构'
+        text: '近30天每天交易额',
       },
       tooltip: {
         trigger: 'axis'
-      },
-      legend: {
-        data: ['最高气温', '最低气温']
       },
       toolbox: {
         show: true,
@@ -289,93 +266,39 @@
       xAxis: {
         type: 'category',
         boundaryGap: false,
-        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+        data: getDate()
       },
       yAxis: {
         type: 'value',
+        name: '交易额(万元)',
         axisLabel: {
-          formatter: '{value} °C'
-        }
+          formatter: '{value}'
+        },
+        min: 150
       },
       series: [{
-        name: '最高气温',
+        name: '交易额(万元)',
         type: 'line',
-        data: [11, 11,
-          15, 13, 12, 13, 10
-        ],
-        markPoint: {
-          data: [{
-            type: 'max',
-            name: '最大值'
-          }, {
-            type: 'min',
-            name: '最小值'
-          }]
-        },
-        markLine: {
-          data: [{
-            type: 'average',
-            name: '平均值'
-          }]
-        }
-      }, {
-        name: '最低气温',
-        type: 'line',
-        data: [1, -2, 2, 5, 3, 2, 0],
-        markPoint: {
-          data: [{
-            name: '周最低',
-            value: -2,
-            xAxis: 1,
-            yAxis: -1.5
-          }]
-        },
-        markLine: {
-          data: [{
-              type: 'average',
-              name: '平均值'
-            },
-            [{
-              symbol: 'none',
-              x: '90%',
-              yAxis: 'max'
-            }, {
-              symbol: 'circle',
-              label: {
-                normal: {
-                  position: 'start',
-                  formatter: '最大值'
-                }
-              },
-              type: 'max',
-              name: '最高点'
-            }]
-          ]
-        }
+        data: getRandomData()
       }]
     }
+    // 初始化折线图
     var lineChart = echarts.init(document.getElementById('line'))
     lineChart.setOption(lineOption)
+    // 折线图点击事件
     lineChart.on('click', function (params) {
-      document.getElementById('pie').style.display = 'block'
+      document.querySelector('.modal').style.display = 'block'
       pieChart.showLoading()
+      var waies = ['餐饮', '网购', '缴费', '百货', '充值']
       $.ajax({
         type: 'get',
         async: true,
         url: 'http://userpay.icitic.net/user/orderListQuery',
         dataType: 'json',
         success: function (res) {
-          pieChart.hideLoading()
-          console.log(params, 'lineChart params')
-          pieChart.setOption(pieOptions)
-          document.getElementById('pie').style.display = 'block'
+          setPieData(params, pieOptions, pieChart, waies, params.name + '前五名支出项')
         }
       })
-      // $.getJSON('http://userpay.icitic.net/user/orderListQuery', function (data) {
-      //   pieChart.hideLoading() 
-      //   console.log(params, 'lineChart params') 
-      //   pieChart.setOption(pieOptions) 
-      // })
     })
   </script>
 </body>
